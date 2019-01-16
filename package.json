@@ -1,8 +1,8 @@
 {
-  "name": "kleros-microservices",
+  "name": "event-microservices",
   "version": "1.0.0",
-  "description": "Collection of Kleros microservices.",
-  "repository": "https://github.com/kleros/kleros-microservices",
+  "description": "Serverless for event handlers.",
+  "repository": "https://github.com/kleros/event-microservices",
   "author": "Kleros",
   "license": "MIT",
   "private": true,
