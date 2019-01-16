@@ -51,7 +51,7 @@ functions:
       - { http: { path: event-handler-example-email, method: post, cors: true } }
     environment:
       INFURA_URL: '${self:custom.kmsSecrets.secrets.${self:custom.environments.${self:provider.stage}}_INFURA_URL}'
-      SENDGRID_API_KEY: 'SENDGRID_API_KEY'
+      SENDGRID_API_KEY: '${self:custom.kmsSecrets.secrets.SENDGRID_API_KEY}'
     iamRoleStatementsName: 'eventHandlerExampleEmail-${self:provider.stage}-lambda-role'
     iamRoleStatements:
       - {
