@@ -61,14 +61,22 @@ module.exports.post = async (event, _context, callback) => {
   }
 
   // Sendgrid
-  sendGridClient = _sendgrid()
-  await sendGridClient.send(msg)
+  sendGridClient = await _sendgrid()
+  let sent = true
+  let reason
+  try {
+    await sendGridClient.send(msg)
+  } catch (err) {
+    sent = false
+    reason = err
+  }
 
   callback(null, {
     statusCode: 200,
     headers: { 'Access-Control-Allow-Origin': '*' },
     body: JSON.stringify({
-      sent: true
+      sent,
+      reason
     })
   })
 }
