@@ -90,6 +90,25 @@ module.exports.post = async (
       })
     })
 
+  const networkID = await _web3.eth.net.getNetworkType()
+  let networkName
+  switch (networkID) {
+    case '1':
+      networkName = 'Mainnet'
+      break
+    case '3':
+      networkName = 'Ropsten'
+      break
+    case '4':
+      networkName = 'Rinkeby'
+      break
+    case '42':
+      networkName = 'Kovan'
+      break
+    default:
+      networkName = 'Unknown'
+  }
+
   // TODO Add your email template and message here
   const msg = {
     to: emailAddress,
@@ -102,6 +121,7 @@ module.exports.post = async (
       name: fullName,
       arbitratorAddress: centralizedArbitratorAddress,
       disputeID: body._disputeID,
+      networkName: networkName,
       subject: 'You Have A New Dispute Awaiting Your Arbitration',
       eventName: body.event
     }
