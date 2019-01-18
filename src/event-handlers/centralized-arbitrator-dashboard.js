@@ -90,24 +90,7 @@ module.exports.post = async (
       })
     })
 
-  const networkID = await _web3.eth.net.getNetworkType()
-  let networkName
-  switch (networkID) {
-    case '1':
-      networkName = 'Mainnet'
-      break
-    case '3':
-      networkName = 'Ropsten'
-      break
-    case '4':
-      networkName = 'Rinkeby'
-      break
-    case '42':
-      networkName = 'Kovan'
-      break
-    default:
-      networkName = 'Unknown'
-  }
+  const networkName = await _web3.eth.net.getNetworkType()
 
   // TODO Add your email template and message here
   const msg = {
