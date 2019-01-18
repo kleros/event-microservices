@@ -36,34 +36,23 @@ module.exports.post = async (
   const item = await dynamoDB.getItem({
     Key: { address: { S: owner } },
     TableName: 'user-settings',
-    AttributesToGet: ['email']
-  })
-
-  const item2 = await dynamoDB.getItem({
-    Key: { address: { S: owner } },
-    TableName: 'user-settings',
     AttributesToGet: [
+      'email',
+      'fullName',
       'centralizedArbitratorDashboardNotificationSettingDisputes'
     ]
   })
 
-  const item3 = await dynamoDB.getItem({
-    Key: { address: { S: owner } },
-    TableName: 'user-settings',
-    AttributesToGet: ['fullName']
-  })
-
   let emailAddress
-  if (item && item.Item && item.Item.email) emailAddress = item.Item.email.S
-
+  let fullName
   let wantsEmailForDisputes
-  if (
-    item2 &&
-    item2.Item &&
-    item2.Item.centralizedArbitratorDashboardNotificationSettingDisputes
-  ) {
-    wantsEmailForDisputes =
-      item2.Item.centralizedArbitratorDashboardNotificationSettingDisputes.S
+
+  if (item && item.Item) {
+    if (item.Item.email) emailAddress = item.Item.email.S
+    if (item.Item.fullName) fullName = item.Item.fullName.S
+    if (item.Item.centralizedArbitratorDashboardNotificationSettingDisputes)
+      wantsEmailForDisputes =
+        item.Item.centralizedArbitratorDashboardNotificationSettingDisputes.BOOL
   }
 
   if (!wantsEmailForDisputes)
@@ -75,10 +64,6 @@ module.exports.post = async (
         reason: "User doesn't want to receive emails for new disputes."
       })
     })
-
-  let fullName
-  if (item3 && item3.Item && item3.Item.fullName)
-    fullName = item3.Item.fullName.S
 
   if (emailAddress == null)
     return callback(null, {
@@ -114,15 +99,17 @@ module.exports.post = async (
   const sendGridClient = await _sendgrid()
   let sent = true
   let reason
+  let statusCode = 200
   try {
     await sendGridClient.send(msg)
   } catch (err) {
+    statusCode = 500
     sent = false
     reason = err
   }
 
   callback(null, {
-    statusCode: 200,
+    statusCode: statusCode,
     headers: { 'Access-Control-Allow-Origin': '*' },
     body: JSON.stringify({
       sent,
