@@ -4,12 +4,7 @@ const _web3 = require('../utils/web3')
 const _sendgrid = require('../utils/sendgrid')
 const dynamoDB = require('../utils/dynamo-db')
 
-module.exports.post = async (
-  centralizedArbitratorAddress,
-  event,
-  _context,
-  callback
-) => {
+module.exports.post = async (event, _context, callback) => {
   // Get the event body
   const body = JSON.parse(event.body)
   if (body == null) {
@@ -24,7 +19,7 @@ module.exports.post = async (
 
   const centralizedArbitratorInstance = new _web3.eth.Contract(
     centralizedArbitrator.abi,
-    centralizedArbitratorAddress
+    body.contractAddress
   )
 
   const owner = centralizedArbitratorInstance.methods.owner().call()
@@ -84,8 +79,8 @@ module.exports.post = async (
     templateId: 'd-8e6dd684d23447a8a5051adf69396d58',
     dynamic_template_data: {
       name: fullName,
-      arbitratorAddress: centralizedArbitratorAddress,
-      disputeID: body._disputeID,
+      arbitratorAddress: event.body.contractAddress,
+      disputeID: body.returnValues._disputeID,
       networkName: networkName,
       subject: 'You Have A New Dispute Awaiting Your Arbitration',
       eventName: body.event
