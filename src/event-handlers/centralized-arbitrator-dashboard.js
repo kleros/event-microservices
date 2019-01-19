@@ -24,10 +24,7 @@ module.exports.post = async (
 
   const centralizedArbitratorInstance = new _web3.eth.Contract(
     centralizedArbitrator.abi,
-    centralizedArbitratorAddress,
-    {
-      gasPrice: 20000000000
-    }
+    centralizedArbitratorAddress
   )
 
   const owner = centralizedArbitratorInstance.methods.owner().call()
