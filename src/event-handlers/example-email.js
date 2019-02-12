@@ -54,14 +54,15 @@ module.exports.post = async (event, _context, callback) => {
       email: 'contact@kleros.io'
     },
     templateId: 'd-9a9d84fc7ec74b67bce3ee490be67c3b', // TODO replace template ID here
-    dynamic_template_data: { // TODO Add your template variables here
+    dynamic_template_data: {
+      // TODO Add your template variables here
       subject: 'Test Email Update',
       eventName: body.event
     }
   }
 
   // Sendgrid
-  sendGridClient = await _sendgrid()
+  const sendGridClient = await _sendgrid()
   let sent = true
   let reason
   try {
