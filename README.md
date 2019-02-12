@@ -13,6 +13,7 @@
 </p>
 
 ## Scripts
+
 - `yarn run prettify` - Apply prettier to the entire project.
 - `yarn run lint` - Lint the entire project's .js files.
 - `yarn run lint --fix` - Fix fixable linting errors in .js files.
