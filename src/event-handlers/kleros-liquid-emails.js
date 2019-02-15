@@ -80,7 +80,7 @@ module.exports.post = async (_event, _context, callback) => {
 
   const web3 = await _web3()
   const sendgrid = await _sendgrid()
-  for (const notification of handlers[event.event](
+  for (const notification of await handlers[event.event](
     web3,
     new web3.eth.Contract(_klerosLiquid.abi, process.env.KLEROS_LIQUID_ADDRESS),
     event
