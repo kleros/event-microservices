@@ -8,8 +8,8 @@ const handlers = {
     const tokenID = await t2cr.methods
       .disputeIDToTokenID(event.returnValues._disputeID)
       .call()
-    const token = await t2cr.methdos.getTokenInfo(tokenID).call()
-    const request = await t2cr.methdos.getRequestInfo(tokenID).call()
+    const token = await t2cr.methods.getTokenInfo(tokenID).call()
+    const request = await t2cr.methods.getRequestInfo(tokenID).call()
 
     return [
       {
@@ -49,7 +49,7 @@ module.exports.post = async (_event, _context, callback) => {
       const settingKey = `tcrNotificationSetting${notification.type}`
       const item = await dynamoDB.getItem({
         Key: { address: { S: notification.account } },
-        TableName: 'tcr-user-settings',
+        TableName: 'user-settings',
         AttributesToGet: ['email', settingKey]
       })
 
