@@ -31,9 +31,48 @@ const handlers = {
         account: event._party,
         message: `The oponent funded his side of an appeal for the dispute on the ${
           token.status === '1' ? 'registration' : 'removal'
-        } request for ${token.name} (${token.ticker}). You must fund your side of the appeal to not lose the case.`,
+        } request for ${token.name} (${
+          token.ticker
+        }). You must fund your side of the appeal to not lose the case.`,
         to: `/token/${event._tokenID}`,
-        type: 'Dispute'
+        type: 'ShouldFund'
+      }
+    ]
+  },
+  NewPeriod: async (t2cr, event) => {
+    const APPEAL_PERIOD = '3'
+    if (event._period !== APPEAL_PERIOD) return // Not appeal period.
+
+    const tokenID = await t2cr.methods
+      .disputeIDToTokenID(event._disputeID)
+      .call()
+    if (
+      tokenID ===
+      '0x0000000000000000000000000000000000000000000000000000000000000000'
+    )
+      return // Dispute is not related to T2CR.
+
+    const token = await t2cr.methods.getTokenInfo(tokenID).call()
+    return [
+      {
+        account: token.parties[1],
+        message: `The arbitrator ruled on the dispute over the ${
+          token.status === '1' ? 'registration' : 'removal'
+        } request for ${token.name} (${
+          token.ticker
+        }). The ruling entered the appeal period. Raise an appeal if you think the ruling is incorrect before the end of the appeal period.`,
+        to: `/token/${tokenID}`,
+        type: 'RulingGiven'
+      },
+      {
+        account: token.parties[2],
+        message: `The arbitrator gave a ruling on the dispute over the ${
+          token.status === '1' ? 'registration' : 'removal'
+        } request for ${token.name} (${
+          token.ticker
+        }). The ruling entered the appeal period. Raise an appeal if you think the ruling is incorrect before the end of the appeal period.`,
+        to: `/token/${tokenID}`,
+        type: 'RulingGiven'
       }
     ]
   }
