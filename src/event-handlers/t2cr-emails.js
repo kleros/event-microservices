@@ -3,6 +3,7 @@ const _sendgrid = require('../utils/sendgrid')
 const _t2cr = require('../assets/contracts/ArbitrableTokenList.json')
 const dynamoDB = require('../utils/dynamo-db')
 
+const REQUESTER = 1
 const handlers = {
   Dispute: async (t2cr, event) => {
     const tokenID = await t2cr.methods
@@ -13,7 +14,7 @@ const handlers = {
 
     return [
       {
-        account: request.parties[1],
+        account: request.parties[REQUESTER],
         message: `Your request to ${
           token.status === '1' ? 'register' : 'remove'
         } ${token.name} (${
@@ -53,28 +54,21 @@ const handlers = {
       return // Dispute is not related to T2CR.
 
     const token = await t2cr.methods.getTokenInfo(tokenID).call()
-    return [
-      {
-        account: token.parties[1],
-        message: `The arbitrator ruled on the dispute over the ${
-          token.status === '1' ? 'registration' : 'removal'
-        } request for ${token.name} (${
-          token.ticker
-        }). The ruling entered the appeal period. Raise an appeal if you think the ruling is incorrect before the end of the appeal period.`,
-        to: `/token/${tokenID}`,
-        type: 'RulingGiven'
-      },
-      {
-        account: token.parties[2],
+    const request = await t2cr.methods
+      .getRequestInfo(tokenID, token.numberOfRequests - 1)
+      .call()
+    return request.parties
+      .map(party => ({
+        account: party,
         message: `The arbitrator gave a ruling on the dispute over the ${
           token.status === '1' ? 'registration' : 'removal'
         } request for ${token.name} (${
           token.ticker
-        }). The ruling entered the appeal period. Raise an appeal if you think the ruling is incorrect before the end of the appeal period.`,
+        }). The request entered the appeal period. Raise an appeal before the end of the appeal period if you think the ruling is incorrect.`,
         to: `/token/${tokenID}`,
         type: 'RulingGiven'
-      }
-    ]
+      }))
+      .filter(n => n.account !== '0x0000000000000000000000000000000000000000') // Parties array has 3 elements, the first of which is unused.
   }
 }
 
