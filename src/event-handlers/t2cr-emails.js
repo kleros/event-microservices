@@ -4,7 +4,7 @@ const _t2cr = require('../assets/contracts/ArbitrableTokenList.json')
 const dynamoDB = require('../utils/dynamo-db')
 
 const handlers = {
-  Dispute: async (_, t2cr, event) => {
+  Dispute: async (t2cr, event) => {
     const tokenID = await t2cr.methods
       .disputeIDToTokenID(event.returnValues._disputeID)
       .call()
@@ -41,12 +41,11 @@ module.exports.post = async (_event, _context, callback) => {
   const web3 = await _web3()
   const sendgrid = await _sendgrid()
   for (const notification of handlers[event.event](
-    web3,
     new web3.eth.Contract(_t2cr.abi, process.env.T2CR_ADDRESS),
     event
   )) {
     try {
-      const settingKey = `tcrNotificationSetting${notification.type}`
+      const settingKey = `t2crNotificationSetting${notification.type}`
       const item = await dynamoDB.getItem({
         Key: { address: { S: notification.account } },
         TableName: 'user-settings',
