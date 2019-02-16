@@ -23,6 +23,19 @@ const handlers = {
         type: 'Dispute'
       }
     ]
+  },
+  WaitingOponent: async (t2cr, event) => {
+    const token = await t2cr.methods.getTokenInfo(event._tokenID).call()
+    return [
+      {
+        account: event._party,
+        message: `The oponent funded his side of an appeal for the dispute on the ${
+          token.status === '1' ? 'registration' : 'removal'
+        } request for ${token.name} (${token.ticker}). You must fund your side of the appeal to not lose the case.`,
+        to: `/token/${event._tokenID}`,
+        type: 'Dispute'
+      }
+    ]
   }
 }
 
