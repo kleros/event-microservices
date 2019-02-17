@@ -23,7 +23,7 @@ const handlers = {
           addressData.status === '1' ? 'add' : 'remove'
         } the Ethfinex badge ${
           addressData.status === '1' ? 'to' : 'from'
-        } token of address ${tokenAddress} was challenged and awaits arbitration.`,
+        } the token of address ${tokenAddress} was challenged and awaits arbitration.`,
         to: `/badge/${process.env.BADGE_ADDRESS}/${tokenAddress}`,
         type: 'Dispute'
       }
@@ -106,6 +106,7 @@ module.exports.post = async (_event, _context, callback) => {
       let setting
       if (item && item.Item && item.Item.email && item.Item[settingKey]) {
         email = item.Item.email.S
+        name = item.Item.name.S
         setting = item.Item[settingKey].BOOL
       }
       if (!email || !setting) continue
@@ -116,10 +117,11 @@ module.exports.post = async (_event, _context, callback) => {
           name: 'Kleros',
           email: 'noreply@kleros.io'
         },
-        templateId: 'd-8132eed4934e4840befa3a0ec22a9520',
+        templateId: 'd-d27b8715f86b49cd99fbcc572c43bd8d',
         dynamic_template_data: {
           message: notification.message,
-          to: notification.to
+          to: notification.to,
+          itemType: 'badge'
         }
       })
     } catch (_) {}
