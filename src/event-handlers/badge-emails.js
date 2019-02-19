@@ -14,7 +14,9 @@ const handlers = {
     const addressData = await badgeTCR.methods
       .getAddressInfo(tokenAddress)
       .call()
-    const request = await badgeTCR.methods.getRequestInfo(tokenAddress).call()
+    const request = await badgeTCR.methods
+      .getRequestInfo(tokenAddress, Number(addressData.numberOfRequests) - 1)
+      .call()
 
     return [
       {
@@ -23,35 +25,40 @@ const handlers = {
           addressData.status === '1' ? 'add' : 'remove'
         } the Ethfinex badge ${
           addressData.status === '1' ? 'to' : 'from'
-        } the token of address ${tokenAddress} was challenged and awaits arbitration.`,
+        } the token with address ${tokenAddress} was challenged and awaits arbitration.`,
         to: `/badge/${process.env.BADGE_ADDRESS}/${tokenAddress}`,
         type: 'Dispute'
       }
     ]
   },
-  WaitingOponent: async (badgeTCR, event) => {
+  WaitingOpponent: async (badgeTCR, event) => {
     const addressData = await badgeTCR.methods
-      .getAddressInfo(event._address)
+      .getAddressInfo(event.returnValues._address)
       .call()
+
     return [
       {
-        account: event._party,
-        message: `The oponent funded his side of an appeal for the dispute on the ${
+        account: event.returnValues._party,
+        message: `The opponent funded his side of an appeal for the dispute on the ${
           addressData.status === '1' ? 'addition' : 'removal'
-        } of the Ethfinex badge to the token of address ${
-          event._address
+        } of the Ethfinex badge ${
+          addressData.status === '1' ? 'to' : 'from'
+        } the token with address ${
+          event.returnValues._address
         }. You must fund your side of the appeal to not lose the case.`,
-        to: `/badge/${process.env.BADGE_ADDRESS}/${event._address}`,
+        to: `/badge/${process.env.BADGE_ADDRESS}/${
+          event.returnValues._address
+        }`,
         type: 'ShouldFund'
       }
     ]
   },
   NewPeriod: async (badgeTCR, event) => {
     const APPEAL_PERIOD = '3'
-    if (event._period !== APPEAL_PERIOD) return // Not appeal period.
+    if (event.returnValues._period !== APPEAL_PERIOD) return // Not appeal period.
 
     const tokenAddress = await badgeTCR.methods
-      .disputeIDToAddress(event._disputeID)
+      .disputeIDToAddress(event.returnValues._disputeID)
       .call()
     if (tokenAddress === ZERO_ADDRESS) return // Dispute is not related to Badge TCR.
 
@@ -59,25 +66,27 @@ const handlers = {
       .getAddressInfo(tokenAddress)
       .call()
     const request = await badgeTCR.methods
-      .getRequestInfo(tokenAddress, addressData.numberOfRequests - 1)
+      .getRequestInfo(tokenAddress, Number(addressData.numberOfRequests) - 1)
       .call()
     return request.parties
+      .filter(n => n.account !== ZERO_ADDRESS) // Parties array has 3 elements, the first of which is unused.
       .map(party => ({
         account: party,
         message: `The arbitrator gave a ruling on the dispute over the request to ${
           addressData.status === '1' ? 'add' : 'remove'
         } the Ethfinex badge ${
           addressData.status === '1' ? 'to' : 'from'
-        } the token of address ${tokenAddress}. The request entered the appeal period. Raise an appeal before the end of the appeal period if you think the ruling is incorrect.`,
+        } the token with address ${tokenAddress}. The request entered the appeal period. Raise an appeal before the end of the appeal period if you think the ruling is incorrect.`,
         to: `/badge/${process.env.BADGE_ADDRESS}/${tokenAddress}`,
         type: 'RulingGiven'
       }))
-      .filter(n => n.account !== ZERO_ADDRESS) // Parties array has 3 elements, the first of which is unused.
   }
 }
 
 module.exports.post = async (_event, _context, callback) => {
-  const event = JSON.parse(_event.body)
+  const event =
+    typeof _event.body === 'string' ? JSON.parse(_event.body) : _event.body
+
   if (event === undefined || event === null) {
     return callback(null, {
       statusCode: 400,
@@ -90,7 +99,7 @@ module.exports.post = async (_event, _context, callback) => {
 
   const web3 = await _web3()
   const sendgrid = await _sendgrid()
-  for (const notification of handlers[event.event](
+  for (const notification of await handlers[event.event](
     new web3.eth.Contract(_badgeTCR.abi, process.env.BADGE_ADDRESS),
     event
   )) {
@@ -103,6 +112,7 @@ module.exports.post = async (_event, _context, callback) => {
       })
 
       let email
+      let name
       let setting
       if (item && item.Item && item.Item.email && item.Item[settingKey]) {
         email = item.Item.email.S
@@ -121,10 +131,20 @@ module.exports.post = async (_event, _context, callback) => {
         dynamic_template_data: {
           message: notification.message,
           to: notification.to,
-          itemType: 'badge'
+          itemType: 'badge',
+          name
         }
       })
-    } catch (_) {}
+    } catch (err) {
+      console.error(err)
+      return callback(null, {
+        statusCode: 500,
+        headers: { 'Access-Control-Allow-Origin': '*' },
+        body: JSON.stringify({
+          error: err
+        })
+      })
+    }
   }
 
   callback(null, {

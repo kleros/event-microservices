@@ -10,7 +10,9 @@ const handlers = {
       .disputeIDToTokenID(event.returnValues._disputeID)
       .call()
     const token = await t2cr.methods.getTokenInfo(tokenID).call()
-    const request = await t2cr.methods.getRequestInfo(tokenID).call()
+    const request = await t2cr.methods
+      .getRequestInfo(tokenID, Number(token.numberOfRequests) - 1)
+      .call()
 
     return [
       {
@@ -25,28 +27,31 @@ const handlers = {
       }
     ]
   },
-  WaitingOponent: async (t2cr, event) => {
-    const token = await t2cr.methods.getTokenInfo(event._tokenID).call()
+  WaitingOpponent: async (t2cr, event) => {
+    const token = await t2cr.methods
+      .getTokenInfo(event.returnValues._tokenID)
+      .call()
     return [
       {
-        account: event._party,
-        message: `The oponent funded his side of an appeal for the dispute on the ${
+        account: event.returnValues._party,
+        message: `The opponent funded his side of an appeal for the dispute on the ${
           token.status === '1' ? 'registration' : 'removal'
         } request for ${token.name} (${
           token.ticker
         }). You must fund your side of the appeal to not lose the case.`,
-        to: `/token/${event._tokenID}`,
+        to: `/token/${event.returnValues._tokenID}`,
         type: 'ShouldFund'
       }
     ]
   },
   NewPeriod: async (t2cr, event) => {
     const APPEAL_PERIOD = '3'
-    if (event._period !== APPEAL_PERIOD) return // Not appeal period.
+    if (event.returnValues._period !== APPEAL_PERIOD) return // Not appeal period.
 
     const tokenID = await t2cr.methods
-      .disputeIDToTokenID(event._disputeID)
+      .disputeIDToTokenID(event.returnValues._disputeID)
       .call()
+
     if (
       tokenID ===
       '0x0000000000000000000000000000000000000000000000000000000000000000'
@@ -55,12 +60,14 @@ const handlers = {
 
     const token = await t2cr.methods.getTokenInfo(tokenID).call()
     const request = await t2cr.methods
-      .getRequestInfo(tokenID, token.numberOfRequests - 1)
+      .getRequestInfo(tokenID, Number(token.numberOfRequests) - 1)
       .call()
+
     return request.parties
+      .filter(acc => acc !== '0x0000000000000000000000000000000000000000') // Parties array has 3 elements, the first of which is unused.
       .map(party => ({
         account: party,
-        message: `The arbitrator gave a ruling on the dispute over the ${
+        message: `The arbitrator gave a ruling on the dispute on the ${
           token.status === '1' ? 'registration' : 'removal'
         } request for ${token.name} (${
           token.ticker
@@ -68,12 +75,13 @@ const handlers = {
         to: `/token/${tokenID}`,
         type: 'RulingGiven'
       }))
-      .filter(n => n.account !== '0x0000000000000000000000000000000000000000') // Parties array has 3 elements, the first of which is unused.
   }
 }
 
 module.exports.post = async (_event, _context, callback) => {
-  const event = JSON.parse(_event.body)
+  const event =
+    typeof _event.body === 'string' ? JSON.parse(_event.body) : _event.body
+
   if (event === undefined || event === null) {
     return callback(null, {
       statusCode: 400,
@@ -86,7 +94,7 @@ module.exports.post = async (_event, _context, callback) => {
 
   const web3 = await _web3()
   const sendgrid = await _sendgrid()
-  for (const notification of handlers[event.event](
+  for (const notification of await handlers[event.event](
     new web3.eth.Contract(_t2cr.abi, process.env.T2CR_ADDRESS),
     event
   )) {
@@ -99,6 +107,7 @@ module.exports.post = async (_event, _context, callback) => {
       })
 
       let email
+      let name
       let setting
       if (item && item.Item && item.Item.email && item.Item[settingKey]) {
         email = item.Item.email.S
@@ -117,10 +126,20 @@ module.exports.post = async (_event, _context, callback) => {
         dynamic_template_data: {
           message: notification.message,
           to: notification.to,
-          itemType: 'token'
+          itemType: 'token',
+          name
         }
       })
-    } catch (_) {}
+    } catch (err) {
+      console.error(err)
+      return callback(null, {
+        statusCode: 500,
+        headers: { 'Access-Control-Allow-Origin': '*' },
+        body: JSON.stringify({
+          error: err
+        })
+      })
+    }
   }
 
   callback(null, {
