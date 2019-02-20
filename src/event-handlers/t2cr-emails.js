@@ -46,7 +46,7 @@ const handlers = {
   },
   NewPeriod: async (t2cr, event) => {
     const APPEAL_PERIOD = '3'
-    if (event.returnValues._period !== APPEAL_PERIOD) return // Not appeal period.
+    if (event.returnValues._period !== APPEAL_PERIOD) return [] // Not appeal period.
 
     const tokenID = await t2cr.methods
       .disputeIDToTokenID(event.returnValues._disputeID)
@@ -56,7 +56,7 @@ const handlers = {
       tokenID ===
       '0x0000000000000000000000000000000000000000000000000000000000000000'
     )
-      return // Dispute is not related to T2CR.
+      return [] // Dispute is not related to T2CR.
 
     const token = await t2cr.methods.getTokenInfo(tokenID).call()
     const request = await t2cr.methods
@@ -111,7 +111,7 @@ module.exports.post = async (_event, _context, callback) => {
       let setting
       if (item && item.Item && item.Item.email && item.Item[settingKey]) {
         email = item.Item.email.S
-        name = item.Item.name.S
+        name = item.Item.name ? item.Item.name.S : ''
         setting = item.Item[settingKey].BOOL
       }
       if (!email || !setting) continue

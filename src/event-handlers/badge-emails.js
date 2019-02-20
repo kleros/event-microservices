@@ -55,12 +55,12 @@ const handlers = {
   },
   NewPeriod: async (badgeTCR, event) => {
     const APPEAL_PERIOD = '3'
-    if (event.returnValues._period !== APPEAL_PERIOD) return // Not appeal period.
+    if (event.returnValues._period !== APPEAL_PERIOD) return [] // Not appeal period.
 
     const tokenAddress = await badgeTCR.methods
       .disputeIDToAddress(event.returnValues._disputeID)
       .call()
-    if (tokenAddress === ZERO_ADDRESS) return // Dispute is not related to Badge TCR.
+    if (tokenAddress === ZERO_ADDRESS) return [] // Dispute is not related to Badge TCR.
 
     const addressData = await badgeTCR.methods
       .getAddressInfo(tokenAddress)
@@ -116,7 +116,7 @@ module.exports.post = async (_event, _context, callback) => {
       let setting
       if (item && item.Item && item.Item.email && item.Item[settingKey]) {
         email = item.Item.email.S
-        name = item.Item.name.S
+        name = item.Item.name ? item.Item.name.S : ''
         setting = item.Item[settingKey].BOOL
       }
       if (!email || !setting) continue
