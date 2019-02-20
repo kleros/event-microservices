@@ -50,6 +50,7 @@ const handlers = {
 
     const tokenID = await t2cr.methods
       .disputeIDToTokenID(event.returnValues._disputeID)
+      .disputeIDToTokenID(event.returnValues._disputeID)
       .call()
 
     if (
