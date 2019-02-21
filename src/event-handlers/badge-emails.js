@@ -84,8 +84,7 @@ const handlers = {
 }
 
 module.exports.post = async (_event, _context, callback) => {
-  const event =
-    typeof _event.body === 'string' ? JSON.parse(_event.body) : _event.body
+  const event = JSON.parse(_event.body)
 
   if (event === undefined || event === null) {
     return callback(null, {
