@@ -111,7 +111,7 @@ module.exports.post = async (_event, _context, callback) => {
       let setting
       if (item && item.Item && item.Item.email && item.Item[settingKey]) {
         email = item.Item.email.S
-        name = item.Item.name ? item.Item.name.S : ''
+        name = item.Item.fullName ? item.Item.fullName.S : ''
         setting = item.Item[settingKey].BOOL
       }
       if (!email || !setting) continue
