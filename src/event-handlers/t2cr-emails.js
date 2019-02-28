@@ -27,20 +27,10 @@ const handlers = {
       }
     ]
   },
-  NewPeriod: async (t2cr, event) => {
-    const APPEAL_PERIOD = '3'
-    if (event.returnValues._period !== APPEAL_PERIOD) return [] // Not appeal period.
-
+  AppealPossible: async (t2cr, event) => {
     const tokenID = await t2cr.methods
       .disputeIDToTokenID(event.returnValues._disputeID)
-      .disputeIDToTokenID(event.returnValues._disputeID)
       .call()
-
-    if (
-      tokenID ===
-      '0x0000000000000000000000000000000000000000000000000000000000000000'
-    )
-      return [] // Dispute is not related to T2CR.
 
     const token = await t2cr.methods.getTokenInfo(tokenID).call()
     const request = await t2cr.methods
