@@ -31,13 +31,11 @@ const handlers = {
       }
     ]
   },
-  NewPeriod: async (badgeTCR, event) => {
-    const APPEAL_PERIOD = '3'
-    if (event.returnValues._period !== APPEAL_PERIOD) return [] // Not appeal period.
-
+  AppealPossible: async (badgeTCR, event) => {
     const tokenAddress = await badgeTCR.methods
       .disputeIDToAddress(event.returnValues._disputeID)
       .call()
+      
     if (tokenAddress === ZERO_ADDRESS) return [] // Dispute is not related to Badge TCR.
 
     const addressData = await badgeTCR.methods
