@@ -27,23 +27,6 @@ const handlers = {
       }
     ]
   },
-  WaitingOpponent: async (t2cr, event) => {
-    const token = await t2cr.methods
-      .getTokenInfo(event.returnValues._tokenID)
-      .call()
-    return [
-      {
-        account: event.returnValues._party,
-        message: `The opponent funded his side of an appeal for the dispute on the ${
-          token.status === '1' ? 'registration' : 'removal'
-        } request for ${token.name} (${
-          token.ticker
-        }). You must fund your side of the appeal to not lose the case.`,
-        to: `/token/${event.returnValues._tokenID}`,
-        type: 'ShouldFund'
-      }
-    ]
-  },
   NewPeriod: async (t2cr, event) => {
     const APPEAL_PERIOD = '3'
     if (event.returnValues._period !== APPEAL_PERIOD) return [] // Not appeal period.

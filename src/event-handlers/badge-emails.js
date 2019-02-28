@@ -31,28 +31,6 @@ const handlers = {
       }
     ]
   },
-  WaitingOpponent: async (badgeTCR, event) => {
-    const addressData = await badgeTCR.methods
-      .getAddressInfo(event.returnValues._address)
-      .call()
-
-    return [
-      {
-        account: event.returnValues._party,
-        message: `The opponent funded his side of an appeal for the dispute on the ${
-          addressData.status === '1' ? 'addition' : 'removal'
-        } of the Ethfinex badge ${
-          addressData.status === '1' ? 'to' : 'from'
-        } the token with address ${
-          event.returnValues._address
-        }. You must fund your side of the appeal to not lose the case.`,
-        to: `/badge/${process.env.BADGE_ADDRESS}/${
-          event.returnValues._address
-        }`,
-        type: 'ShouldFund'
-      }
-    ]
-  },
   NewPeriod: async (badgeTCR, event) => {
     const APPEAL_PERIOD = '3'
     if (event.returnValues._period !== APPEAL_PERIOD) return [] // Not appeal period.
