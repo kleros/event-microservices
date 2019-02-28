@@ -6,9 +6,11 @@ const dynamoDB = require('../utils/dynamo-db')
 const REQUESTER = 1
 const handlers = {
   Dispute: async (t2cr, event) => {
+    const { _arbitrator, _disputeID } = event.returnValues
     const tokenID = await t2cr.methods
-      .disputeIDToTokenID(event.returnValues._disputeID)
+      .arbitratorDisputeIDToTokenID(_arbitrator, _disputeID)
       .call()
+
     const token = await t2cr.methods.getTokenInfo(tokenID).call()
     const request = await t2cr.methods
       .getRequestInfo(tokenID, Number(token.numberOfRequests) - 1)
@@ -28,9 +30,11 @@ const handlers = {
     ]
   },
   AppealPossible: async (t2cr, event) => {
+    const { _arbitrator, _disputeID } = event.returnValues
     const tokenID = await t2cr.methods
-      .disputeIDToTokenID(event.returnValues._disputeID)
+      .arbitratorDisputeIDToTokenID(_arbitrator, _disputeID)
       .call()
+
     if (tokenID === ZERO_ID) return [] // Dispute is not related to Token TCR.
 
     const token = await t2cr.methods.getTokenInfo(tokenID).call()

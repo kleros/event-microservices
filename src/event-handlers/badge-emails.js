@@ -7,8 +7,9 @@ const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 const REQUESTER = 1
 const handlers = {
   Dispute: async (badgeTCR, event) => {
+    const { _arbitrator, _disputeID } = event.returnValues
     const tokenAddress = await badgeTCR.methods
-      .disputeIDToAddress(event.returnValues._disputeID)
+      .arbitratorDisputeIDToAddress(_arbitrator, _disputeID)
       .call()
 
     const addressData = await badgeTCR.methods
@@ -32,10 +33,11 @@ const handlers = {
     ]
   },
   AppealPossible: async (badgeTCR, event) => {
+    const { _arbitrator, _disputeID } = event.returnValues
     const tokenAddress = await badgeTCR.methods
-      .disputeIDToAddress(event.returnValues._disputeID)
+      .arbitratorDisputeIDToAddress(_arbitrator, _disputeID)
       .call()
-      
+
     if (tokenAddress === ZERO_ADDRESS) return [] // Dispute is not related to Badge TCR.
 
     const addressData = await badgeTCR.methods
