@@ -6,9 +6,11 @@ const dynamoDB = require('../utils/dynamo-db')
 const REQUESTER = 1
 const handlers = {
   Dispute: async (t2cr, event) => {
+    const { _arbitrator, _disputeID } = event.returnValues
     const tokenID = await t2cr.methods
-      .disputeIDToTokenID(event.returnValues._disputeID)
+      .arbitratorDisputeIDToTokenID(_arbitrator, _disputeID)
       .call()
+
     const token = await t2cr.methods.getTokenInfo(tokenID).call()
     const request = await t2cr.methods
       .getRequestInfo(tokenID, Number(token.numberOfRequests) - 1)
@@ -27,37 +29,13 @@ const handlers = {
       }
     ]
   },
-  WaitingOpponent: async (t2cr, event) => {
-    const token = await t2cr.methods
-      .getTokenInfo(event.returnValues._tokenID)
-      .call()
-    return [
-      {
-        account: event.returnValues._party,
-        message: `The opponent funded his side of an appeal for the dispute on the ${
-          token.status === '1' ? 'registration' : 'removal'
-        } request for ${token.name} (${
-          token.ticker
-        }). You must fund your side of the appeal to not lose the case.`,
-        to: `/token/${event.returnValues._tokenID}`,
-        type: 'ShouldFund'
-      }
-    ]
-  },
-  NewPeriod: async (t2cr, event) => {
-    const APPEAL_PERIOD = '3'
-    if (event.returnValues._period !== APPEAL_PERIOD) return [] // Not appeal period.
-
+  AppealPossible: async (t2cr, event) => {
+    const { _arbitrator, _disputeID } = event.returnValues
     const tokenID = await t2cr.methods
-      .disputeIDToTokenID(event.returnValues._disputeID)
-      .disputeIDToTokenID(event.returnValues._disputeID)
+      .arbitratorDisputeIDToTokenID(_arbitrator, _disputeID)
       .call()
 
-    if (
-      tokenID ===
-      '0x0000000000000000000000000000000000000000000000000000000000000000'
-    )
-      return [] // Dispute is not related to T2CR.
+    if (tokenID === ZERO_ID) return [] // Dispute is not related to Token TCR.
 
     const token = await t2cr.methods.getTokenInfo(tokenID).call()
     const request = await t2cr.methods

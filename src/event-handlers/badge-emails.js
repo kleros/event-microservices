@@ -7,8 +7,9 @@ const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 const REQUESTER = 1
 const handlers = {
   Dispute: async (badgeTCR, event) => {
+    const { _arbitrator, _disputeID } = event.returnValues
     const tokenAddress = await badgeTCR.methods
-      .disputeIDToAddress(event.returnValues._disputeID)
+      .arbitratorDisputeIDToAddress(_arbitrator, _disputeID)
       .call()
 
     const addressData = await badgeTCR.methods
@@ -31,35 +32,12 @@ const handlers = {
       }
     ]
   },
-  WaitingOpponent: async (badgeTCR, event) => {
-    const addressData = await badgeTCR.methods
-      .getAddressInfo(event.returnValues._address)
-      .call()
-
-    return [
-      {
-        account: event.returnValues._party,
-        message: `The opponent funded his side of an appeal for the dispute on the ${
-          addressData.status === '1' ? 'addition' : 'removal'
-        } of the Ethfinex badge ${
-          addressData.status === '1' ? 'to' : 'from'
-        } the token with address ${
-          event.returnValues._address
-        }. You must fund your side of the appeal to not lose the case.`,
-        to: `/badge/${process.env.BADGE_ADDRESS}/${
-          event.returnValues._address
-        }`,
-        type: 'ShouldFund'
-      }
-    ]
-  },
-  NewPeriod: async (badgeTCR, event) => {
-    const APPEAL_PERIOD = '3'
-    if (event.returnValues._period !== APPEAL_PERIOD) return [] // Not appeal period.
-
+  AppealPossible: async (badgeTCR, event) => {
+    const { _arbitrator, _disputeID } = event.returnValues
     const tokenAddress = await badgeTCR.methods
-      .disputeIDToAddress(event.returnValues._disputeID)
+      .arbitratorDisputeIDToAddress(_arbitrator, _disputeID)
       .call()
+
     if (tokenAddress === ZERO_ADDRESS) return [] // Dispute is not related to Badge TCR.
 
     const addressData = await badgeTCR.methods
