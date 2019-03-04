@@ -23,9 +23,9 @@ const handlers = {
       {
         account: request.parties[REQUESTER],
         message: `Your request to ${
-          addressData.status === '1' ? 'add' : 'remove'
+          addressData.status === '2' ? 'add' : 'remove'
         } the Ethfinex badge ${
-          addressData.status === '1' ? 'to' : 'from'
+          addressData.status === '2' ? 'to' : 'from'
         } the token with address ${tokenAddress} was challenged and awaits arbitration.`,
         to: `/badge/${process.env.BADGE_ADDRESS}/${tokenAddress}`,
         type: 'Dispute'
@@ -51,9 +51,9 @@ const handlers = {
       .map(party => ({
         account: party,
         message: `The arbitrator gave a ruling on the dispute over the request to ${
-          addressData.status === '1' ? 'add' : 'remove'
+          addressData.status === '2' ? 'add' : 'remove'
         } the Ethfinex badge ${
-          addressData.status === '1' ? 'to' : 'from'
+          addressData.status === '2' ? 'to' : 'from'
         } the token with address ${tokenAddress}. The request entered the appeal period. Raise an appeal before the end of the appeal period if you think the ruling is incorrect.`,
         to: `/badge/${process.env.BADGE_ADDRESS}/${tokenAddress}`,
         type: 'RulingGiven'
