@@ -20,7 +20,7 @@ const handlers = {
       {
         account: request.parties[REQUESTER],
         message: `Your request to ${
-          token.status === '1' ? 'register' : 'remove'
+          token.status === '2' ? 'register' : 'remove'
         } ${token.name} (${
           token.ticker
         }) was challenged and awaits arbitration.`,
@@ -47,7 +47,7 @@ const handlers = {
       .map(party => ({
         account: party,
         message: `The arbitrator gave a ruling on the dispute on the ${
-          token.status === '1' ? 'registration' : 'removal'
+          token.status === '2' ? 'registration' : 'removal'
         } request for ${token.name} (${
           token.ticker
         }). The request entered the appeal period. Raise an appeal before the end of the appeal period if you think the ruling is incorrect.`,
