@@ -1,8 +1,12 @@
+const TimeAgo = require('javascript-time-ago')
+TimeAgo.addLocale(require('javascript-time-ago/locale/en'))
+
 const _web3 = require('../utils/web3')
 const _sendgrid = require('../utils/sendgrid')
 const _klerosLiquid = require('../assets/contracts/KlerosLiquid.json')
 const dynamoDB = require('../utils/dynamo-db')
 
+const timeAgo = new TimeAgo('en-US')
 const handlers = {
   AppealDecision: async (_, klerosLiquid, event) => {
     const dispute = await klerosLiquid.methods
@@ -22,6 +26,7 @@ const handlers = {
         account: d.returnValues._address
       }))
     }
+    return []
   },
   Draw: async (_, klerosLiquid, event) => {
     const dispute = await klerosLiquid.methods
@@ -40,12 +45,21 @@ const handlers = {
             account: event.returnValues._address,
             message: `Congratulations! You have been drawn as a juror on case #${
               event.returnValues._disputeID
-            }.`,
+            }. Voting starts ${timeAgo.format(
+              (Number(dispute.lastPeriodChange) +
+                Number(
+                  (await klerosLiquid.methods
+                    .getSubcourt(dispute.subcourtID)
+                    .call()).timesPerPeriod[0]
+                )) *
+                1000
+            )}`,
             to: `/cases/${event.returnValues._disputeID}`,
             type: 'Draw'
           }
         ]
     }
+    return []
   },
   TokenAndETHShift: async (web3, _, event) => [
     {
