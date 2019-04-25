@@ -45,15 +45,19 @@ const handlers = {
             account: event.returnValues._address,
             message: `Congratulations! You have been drawn as a juror on case #${
               event.returnValues._disputeID
-            }. Voting starts ${timeAgo.format(
-              (Number(dispute.lastPeriodChange) +
-                Number(
-                  (await klerosLiquid.methods
-                    .getSubcourt(dispute.subcourtID)
-                    .call()).timesPerPeriod[0]
-                )) *
-                1000
-            )}`,
+            }. Voting starts ${
+              event.returnValues._appeal === '0'
+                ? timeAgo.format(
+                    (Number(dispute.lastPeriodChange) +
+                      Number(
+                        (await klerosLiquid.methods
+                          .getSubcourt(dispute.subcourtID)
+                          .call()).timesPerPeriod[0]
+                      )) *
+                      1000
+                  )
+                : 'as soon as all other jurors are drawn'
+            }.`,
             to: `/cases/${event.returnValues._disputeID}`,
             type: 'Draw'
           }
