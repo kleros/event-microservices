@@ -36,13 +36,13 @@ module.exports.post = async (_event, _context, callback) => {
 
   try {
     await sns.publish({
-      Message: "TEST TEXT",
+      Message: event.message,
       PhoneNumber: phoneNumber
     })
 
     // update phone number to include +
     if (addedPlus) {
-      await dynamoDB.putItem({
+      await dynamoDB.updateItem({
         Key: { address: { S: event.account } },
         TableName: 'user-settings',
         UpdateExpression: `SET phone = :_phone`,
@@ -54,6 +54,17 @@ module.exports.post = async (_event, _context, callback) => {
       })
     }
   } catch (e) {
-    console.log(e)
+    console.error(e)
+    // Remove phone number from db on fail
+    await dynamoDB.updateItem({
+      Key: { address: { S: event.account } },
+      TableName: 'user-settings',
+      UpdateExpression: `SET phone = :_phone`,
+      ExpressionAttributeValues: {
+        ":_phone": {
+          S: ''
+        }
+      }
+    })
   }
 }
