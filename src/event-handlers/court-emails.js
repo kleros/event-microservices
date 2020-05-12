@@ -99,41 +99,11 @@ module.exports.post = async (_event, _context, callback) => {
 
   const web3 = await _web3()
   const sendgrid = await _sendgrid()
-  for (const notification of await handlers[event.event](
-    web3,
-    new web3.eth.Contract(_klerosLiquid.abi, process.env.KLEROS_LIQUID_ADDRESS),
-    event
-  )) {
-    try {
-      const settingKey = `courtNotificationSetting${notification.type}`
-      const item = await dynamoDB.getItem({
-        Key: { address: { S: notification.account } },
-        TableName: 'user-settings',
-        AttributesToGet: ['email', settingKey]
-      })
+  const { ENTROPY } = await getEnvVars(['ENTROPY'])
+  const lambdaAccount = web3.eth.accounts.create(ENTROPY)
 
-      let email
-      let setting
-      if (item && item.Item && item.Item.email && item.Item[settingKey]) {
-        email = item.Item.email.S
-        setting = item.Item[settingKey].BOOL
-      }
-      if (!email || !setting) continue
-
-      await sendgrid.send({
-        to: email,
-        from: {
-          name: 'Kleros',
-          email: 'noreply@kleros.io'
-        },
-        templateId: 'd-8132eed4934e4840befa3a0ec22a9520',
-        dynamic_template_data: {
-          message: notification.message,
-          to: notification.to
-        }
-      })
-    } catch (_) {}
-  }
+  const signedUnsubscribeKey = lambdaAccount.sign('test@kleros.io')
+  console.log(signedUnsubscribeKey)
 
   callback(null, {
     statusCode: 200,
