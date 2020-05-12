@@ -1,7 +1,7 @@
 service: event-microservices
 provider:
   name: aws
-  runtime: nodejs8.10
+  runtime: nodejs12.x
   stage: '${opt:stage, self:custom.defaultStage}'
   region: us-east-2
 package:
@@ -172,5 +172,28 @@ functions:
       - {
           Effect: Allow,
           Action: ['dynamodb:GetItem'],
+          Resource: 'arn:aws:dynamodb:us-east-2:547511976516:table/user-settings',
+        }
+  postEventHandlersCourtSMS:
+    handler: src/event-handlers/court-sms.post
+    events:
+      - {
+          http:
+            {
+              path: event-handler-court-sms,
+              method: post,
+              cors: true,
+            },
+        }
+    iamRoleStatementsName: 'postEventHandlersCourtSMS-${self:provider.stage}-lambda-role'
+    iamRoleStatements:
+      - {
+          Effect: Allow,
+          Action: ['sns:Publish'],
+          Resource: '*',
+        }
+      - {
+          Effect: Allow,
+          Action: ['dynamodb:GetItem', 'dynamodb:UpdateItem'],
           Resource: 'arn:aws:dynamodb:us-east-2:547511976516:table/user-settings',
         }
