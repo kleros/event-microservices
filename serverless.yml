@@ -197,32 +197,32 @@ functions:
           Action: ['dynamodb:GetItem', 'dynamodb:UpdateItem'],
           Resource: 'arn:aws:dynamodb:us-east-2:547511976516:table/user-settings',
         }
-postEventHandlersCourtEmails:
-  handler: src/event-handlers/court-emails.post
-  events:
-  - {
-      http:
-        {
-          path: event-handler-court-emails,
-          method: post,
-          cors: true,
-        },
-    }
-  environment:
-    INFURA_URL: '${self:custom.kmsSecrets.secrets.${self:custom.environments.${self:provider.stage}}_INFURA_URL}'
-    ENTROPY: '${self:custom.kmsSecrets.secrets.ENTROPY}'
-    SENDGRID_API_KEY: '${self:custom.kmsSecrets.secrets.SENDGRID_API_KEY}'
-    KLEROS_LIQUID_ADDRESS_KOVAN: '${self:custom.kmsSecrets.secrets.STAGING_KLEROS_LIQUID_ADDRESS}'
-    KLEROS_LIQUID_ADDRESS_MAINNET: '${self:custom.kmsSecrets.secrets.PRODUCTION_KLEROS_LIQUID_ADDRESS}'
-  iamRoleStatementsName: 'postEventHandlersCourtEmails-${self:provider.stage}-lambda-role'
-  iamRoleStatements:
+  postEventHandlersCourtEmails:
+    handler: src/event-handlers/court-emails.post
+    events:
     - {
-        Effect: Allow,
-        Action: ['KMS:Decrypt'],
-        Resource: '${self:custom.kmsSecrets.keyArn}',
+        http:
+          {
+            path: event-handler-court-emails,
+            method: post,
+            cors: true,
+          },
       }
-    - {
-        Effect: Allow,
-        Action: ['dynamodb:GetItem'],
-        Resource: 'arn:aws:dynamodb:us-east-2:547511976516:table/user-settings',
-      }
+    environment:
+      INFURA_URL: '${self:custom.kmsSecrets.secrets.${self:custom.environments.${self:provider.stage}}_INFURA_URL}'
+      PRIVATE_KEY: '${self:custom.kmsSecrets.secrets.PRIVATE_KEY}'
+      SENDGRID_API_KEY: '${self:custom.kmsSecrets.secrets.SENDGRID_API_KEY}'
+      KLEROS_LIQUID_ADDRESS_KOVAN: '${self:custom.kmsSecrets.secrets.STAGING_KLEROS_LIQUID_ADDRESS}'
+      KLEROS_LIQUID_ADDRESS_MAINNET: '${self:custom.kmsSecrets.secrets.PRODUCTION_KLEROS_LIQUID_ADDRESS}'
+    iamRoleStatementsName: 'postEventHandlersCourtEmails-${self:provider.stage}-lambda-role'
+    iamRoleStatements:
+      - {
+          Effect: Allow,
+          Action: ['KMS:Decrypt'],
+          Resource: '${self:custom.kmsSecrets.keyArn}',
+        }
+      - {
+          Effect: Allow,
+          Action: ['dynamodb:GetItem'],
+          Resource: 'arn:aws:dynamodb:us-east-2:547511976516:table/user-settings',
+        }

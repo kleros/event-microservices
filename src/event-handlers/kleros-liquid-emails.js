@@ -5,7 +5,6 @@ const _web3 = require('../utils/web3')
 const _sendgrid = require('../utils/sendgrid')
 const _klerosLiquid = require('../assets/contracts/KlerosLiquid.json')
 const dynamoDB = require('../utils/dynamo-db')
-const getEnvVars = require('../get-env-vars')
 
 const timeAgo = new TimeAgo('en-US')
 const handlers = {
