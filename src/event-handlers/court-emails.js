@@ -6,12 +6,13 @@ const _sendgrid = require('../utils/sendgrid')
 const _klerosLiquid = require('../assets/contracts/KlerosLiquid.json')
 const dynamoDB = require('../utils/dynamo-db')
 const getEnvVars = require('../utils/get-env-vars')
+const webpush = require('web-push')
 
 const timeAgo = new TimeAgo('en-US')
 const handlers = {
   Draw: async (_, klerosLiquid, event) => {
       const dispute = await klerosLiquid.methods
-        .disputes(event.returnValues._disputeID)
+        .disputes(event._disputeID)
         .call()
       return [
         {
@@ -34,13 +35,14 @@ const handlers = {
                 : 'as soon as all other jurors are drawn'
             ),
             caseNumber: event._disputeID
-          }
+          },
+          pushNotificationText: `You have been drawn in case ${event._disputeID}`
         }
       ]
   },
   Vote: async (_, klerosLiquid, event) => {
     const dispute = await klerosLiquid.methods
-      .disputes(event.returnValues._disputeID)
+      .disputes(event._disputeID)
       .call()
     return [
       {
@@ -67,7 +69,7 @@ const handlers = {
   },
   VoteReminder: async (_, klerosLiquid, event) => {
     const dispute = await klerosLiquid.methods
-      .disputes(event.returnValues._disputeID)
+      .disputes(event._disputeID)
       .call()
     return [
       {
@@ -126,8 +128,9 @@ module.exports.post = async (_event, _context, callback) => {
       const item = await dynamoDB.getItem({
         Key: { address: { S: notification.account } },
         TableName: 'user-settings',
-        AttributesToGet: ['email', settingKey]
+        AttributesToGet: ['email', settingKey, 'pushNotifications', 'pushNotificationsData']
       })
+      console.log(item)
 
       let email
       let setting
@@ -136,30 +139,33 @@ module.exports.post = async (_event, _context, callback) => {
         setting = item.Item[settingKey].BOOL
       }
 
-      if (!email || !setting) continue
-
-      await sendgrid.send({
-        to: email,
-        from: {
-          name: 'Kleros',
-          email: 'noreply@kleros.io'
-        },
-        templateId: notification.templateId,
-        dynamic_template_data: {
-          ...notification.dynamic_template_data,
-          unsubscribe: ` https://hgyxlve79a.execute-api.us-east-2.amazonaws.com/production/unsubscribe?signature=${signedUnsubscribeKey.signature}&account=${notification.account}&dapp=court`
-        }
-      })
-
-      if (item.Item["pushNotifications"] && item.Items["pushNotificationsURI"]) {
-
+      if (email && setting) {
+        // await sendgrid.send({
+        //   to: email,
+        //   from: {
+        //     name: 'Kleros',
+        //     email: 'noreply@kleros.io'
+        //   },
+        //   templateId: notification.templateId,
+        //   dynamic_template_data: {
+        //     ...notification.dynamic_template_data,
+        //     unsubscribe: ` https://hgyxlve79a.execute-api.us-east-2.amazonaws.com/production/unsubscribe?signature=${signedUnsubscribeKey.signature}&account=${notification.account}&dapp=court`
+        //   }
+        // })
       }
-      // Push notifications
-      const item = await dynamoDB.getItem({
-        Key: { address: { S: notification.account } },
-        TableName: 'user-settings',
-        AttributesToGet: ['email', settingKey]
-      })
+
+
+      console.log(item.Item["pushNotifications"])
+      console.log(item.Items["pushNotificationsData"])
+
+      const pushNotifications = item.Item["pushNotifications"] && item.Item["pushNotifications"].BOOL
+      const pushNotificationsData = item.Item["pushNotificationsData"] ? JSON.parse(item.Item["pushNotificationsData"].S) : false
+      if (pushNotifications) {
+        const { VAPID_KEY } = await getEnvVars(['VAPID_KEY'])
+        webpush.setVapidDetails('mailto:contact@kleros.io', VAPID_KEY, process.env.VAPID_PUB)
+        console.log("pushing noticiation: " + notification.pushNotificationText)
+        webpush.sendNotification(pushNotificationsData, notification.pushNotificationText)
+      }
     } catch (_) {}
   }
 

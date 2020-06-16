@@ -40,6 +40,7 @@
     "image-size": "^0.6.3",
     "javascript-time-ago": "^2.0.1",
     "phone": "^2.4.9",
+    "web-push": "^3.4.4",
     "web3": "^1.2.6"
   }
 }

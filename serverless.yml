@@ -214,6 +214,8 @@ functions:
       SENDGRID_API_KEY: '${self:custom.kmsSecrets.secrets.SENDGRID_API_KEY}'
       KLEROS_LIQUID_ADDRESS_KOVAN: '${self:custom.kmsSecrets.secrets.STAGING_KLEROS_LIQUID_ADDRESS}'
       KLEROS_LIQUID_ADDRESS_MAINNET: '${self:custom.kmsSecrets.secrets.PRODUCTION_KLEROS_LIQUID_ADDRESS}'
+      VAPID_KEY: '${self:custom.kmsSecrets.secrets.VAPID_KEY}'
+      VAPID_PUB: '${self:custom.kmsSecrets.secrets.VAPID_PUB}'
     iamRoleStatementsName: 'postEventHandlersCourtEmails-${self:provider.stage}-lambda-role'
     iamRoleStatements:
       - {
