@@ -36,7 +36,7 @@ const handlers = {
             ),
             caseNumber: event._disputeID
           },
-          pushNotificationText: `You have been drawn in case ${event._disputeID}`
+          pushNotificationText: `You have been drawn in case #${event._disputeID}`
         }
       ]
   },
@@ -63,7 +63,8 @@ const handlers = {
                 )}`
           ),
           caseNumber: event._disputeID
-        }
+        },
+        pushNotificationText: `It is time to vote in case #${event._disputeID}`
       }
     ]
   },
@@ -90,7 +91,8 @@ const handlers = {
                 )}`
           ),
           caseNumber: event._disputeID
-        }
+        },
+        pushNotificationText: `You have 24 hours left to vote in case #${event._disputeID}`
       }
     ]
   },
@@ -120,7 +122,6 @@ module.exports.post = async (_event, _context, callback) => {
   )
 
   for (const notification of notifications) {
-    console.log(notification.account)
     const signedUnsubscribeKey = lambdaAccount.sign(notification.account)
 
     try {
@@ -130,7 +131,6 @@ module.exports.post = async (_event, _context, callback) => {
         TableName: 'user-settings',
         AttributesToGet: ['email', settingKey, 'pushNotifications', 'pushNotificationsData']
       })
-      console.log(item)
 
       let email
       let setting
@@ -140,31 +140,35 @@ module.exports.post = async (_event, _context, callback) => {
       }
 
       if (email && setting) {
-        // await sendgrid.send({
-        //   to: email,
-        //   from: {
-        //     name: 'Kleros',
-        //     email: 'noreply@kleros.io'
-        //   },
-        //   templateId: notification.templateId,
-        //   dynamic_template_data: {
-        //     ...notification.dynamic_template_data,
-        //     unsubscribe: ` https://hgyxlve79a.execute-api.us-east-2.amazonaws.com/production/unsubscribe?signature=${signedUnsubscribeKey.signature}&account=${notification.account}&dapp=court`
-        //   }
-        // })
+        await sendgrid.send({
+          to: email,
+          from: {
+            name: 'Kleros',
+            email: 'noreply@kleros.io'
+          },
+          templateId: notification.templateId,
+          dynamic_template_data: {
+            ...notification.dynamic_template_data,
+            unsubscribe: ` https://hgyxlve79a.execute-api.us-east-2.amazonaws.com/production/unsubscribe?signature=${signedUnsubscribeKey.signature}&account=${notification.account}&dapp=court`
+          }
+        })
       }
-
-
-      console.log(item.Item["pushNotifications"])
-      console.log(item.Items["pushNotificationsData"])
 
       const pushNotifications = item.Item["pushNotifications"] && item.Item["pushNotifications"].BOOL
       const pushNotificationsData = item.Item["pushNotificationsData"] ? JSON.parse(item.Item["pushNotificationsData"].S) : false
+
       if (pushNotifications) {
         const { VAPID_KEY } = await getEnvVars(['VAPID_KEY'])
-        webpush.setVapidDetails('mailto:contact@kleros.io', VAPID_KEY, process.env.VAPID_PUB)
-        console.log("pushing noticiation: " + notification.pushNotificationText)
-        webpush.sendNotification(pushNotificationsData, notification.pushNotificationText)
+        const options = {
+          vapidDetails: {
+            subject: 'mailto:contact@kleros.io',
+            publicKey: process.env.VAPID_PUB,
+            privateKey: VAPID_KEY
+          },
+          TTL: 60
+        }
+
+        await webpush.sendNotification(pushNotificationsData, notification.pushNotificationText, options)
       }
     } catch (_) {}
   }
