@@ -99,7 +99,7 @@ const handlers = {
 
 }
 module.exports.post = async (_event, _context, callback) => {
-  const event = _event
+  const event = JSON.parse(_event.body)
   if (event === undefined || event === null) {
     return callback(null, {
       statusCode: 400,
