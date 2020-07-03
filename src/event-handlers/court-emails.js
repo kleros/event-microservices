@@ -96,7 +96,53 @@ const handlers = {
       }
     ]
   },
-
+  Appeal: async (_, klerosLiquid, event) => {
+    return [
+      {
+        account: event._address,
+        type: 'Appeal', // Use the same setting for Draw and Vote reminders
+        disputeID: event._disputeID,
+        templateId: 'd-2f9e67361add441b9a85b2116ba90e53',
+        dynamic_template_data: {
+          caseNumber: event._disputeID
+        },
+        pushNotificationText: `Case #${event._disputeID} has been appealed`
+      }
+    ]
+  },
+  Won: async (_, klerosLiquid, event) => {
+    return [
+      {
+        account: event._address,
+        type: 'Win', // Use the same setting for Draw and Vote reminders
+        disputeID: event._disputeID,
+        templateId: 'd-2f9e67361add441b9a85b2116ba90e53',
+        dynamic_template_data: {
+          caseNumber: event._disputeID,
+          ethWon: event._ethWon,
+          pnkWon: event._pnkWon,
+          caseTitle: event._caseTitle
+        },
+        pushNotificationText: `Horray! You won ${event._ethWon} ETH from case #${event._disputeID}`
+      }
+    ]
+  },
+  Lost: async (_, klerosLiquid, event) => {
+    return [
+      {
+        account: event._address,
+        type: 'Lose', // Use the same setting for Draw and Vote reminders
+        disputeID: event._disputeID,
+        templateId: 'd-588ac6aef7184cad9f3c460dbef5433b',
+        dynamic_template_data: {
+          caseNumber: event._disputeID,
+          pnkLost: event._pnkLost,
+          caseTitle: event._caseTitle
+        },
+        pushNotificationText: `You lost ${event._pnkLost} PNK from case #${event._disputeID}`
+      }
+    ]
+  },
 }
 module.exports.post = async (_event, _context, callback) => {
   const event = JSON.parse(_event.body)
