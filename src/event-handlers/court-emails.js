@@ -116,7 +116,7 @@ const handlers = {
         account: event._address,
         type: 'Win', // Use the same setting for Draw and Vote reminders
         disputeID: event._disputeID,
-        templateId: 'd-2f9e67361add441b9a85b2116ba90e53',
+        templateId: 'd-b6ac074fb68541b09e1463aa66e6aadb',
         dynamic_template_data: {
           caseNumber: event._disputeID,
           ethWon: event._ethWon,
