@@ -8,26 +8,6 @@ const dynamoDB = require('../utils/dynamo-db')
 
 const timeAgo = new TimeAgo('en-US')
 const handlers = {
-  // AppealDecision: async (_, klerosLiquid, event) => {
-  //   const dispute = await klerosLiquid.methods
-  //     .disputes(event.returnValues._disputeID)
-  //     .call()
-  //   if (dispute.period !== '4') {
-  //     const notification = {
-  //       message: `Case #${event.returnValues._disputeID} has been appealed.`,
-  //       to: `/cases/${event.returnValues._disputeID}`,
-  //       type: 'Appeal'
-  //     }
-  //     return (await klerosLiquid.getPastEvents('Draw', {
-  //       filter: { _disputeID: event.returnValues._disputeID },
-  //       fromBlock: 0
-  //     })).map(d => ({
-  //       ...notification,
-  //       account: d.returnValues._address
-  //     }))
-  //   }
-  //   return []
-  // },
   Draw: async (_, klerosLiquid, event) => {
     const dispute = await klerosLiquid.methods
       .disputes(event.returnValues._disputeID)
@@ -64,25 +44,7 @@ const handlers = {
         ]
     }
     return []
-  },
-  // TokenAndETHShift: async (web3, _, event) => [
-  //   {
-  //     account: event.returnValues._address,
-  //     message: `Case #${
-  //       event.returnValues._disputeID
-  //     } was executed. ETH: ${Number(
-  //       web3.utils.fromWei(event.returnValues._ETHAmount)
-  //     ).toFixed(4)}, PNK: ${Number(
-  //       web3.utils.fromWei(event.returnValues._tokenAmount)
-  //     ).toFixed(0)}.`,
-  //     to: `/cases/${event.returnValues._disputeID}`,
-  //     type: web3.utils
-  //       .toBN(event.returnValues._ETHAmount)
-  //       .gte(web3.utils.toBN(0))
-  //       ? 'Win'
-  //       : 'Lose'
-  //   }
-  // ]
+  }
 }
 module.exports.post = async (_event, _context, callback) => {
   const event = JSON.parse(_event.body)

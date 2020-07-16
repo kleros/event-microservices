@@ -184,8 +184,9 @@ module.exports.post = async (_event, _context, callback) => {
         email = item.Item.email.S
         setting = item.Item[settingKey].BOOL
       }
-
+      
       if (email && setting) {
+        console.log("SENDING EMAIL TO " + email)
         await sendgrid.send({
           to: email,
           from: {
