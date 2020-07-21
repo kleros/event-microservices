@@ -23,7 +23,7 @@ const handlers = {
           dynamic_template_data: {
             startDate: (
               event._appeal === '0'
-                ? `in ${timeAgo.format(
+                ? `${timeAgo.format(
                     (Number(dispute.lastPeriodChange) +
                       Number(
                         (await klerosLiquid.methods
@@ -52,7 +52,7 @@ const handlers = {
         templateId: 'd-c3bfae61a6cc42c1ab744a10dad0eca7',
         dynamic_template_data: {
           endTime: (
-            `in ${timeAgo.format(
+            `${timeAgo.format(
                   (Number(dispute.lastPeriodChange) +
                     Number(
                       (await klerosLiquid.methods
@@ -80,7 +80,7 @@ const handlers = {
         templateId: 'd-56da601bf4334c7c8fa2bd4c65777dca',
         dynamic_template_data: {
           endTime: (
-            `in ${timeAgo.format(
+            `${timeAgo.format(
                   (Number(dispute.lastPeriodChange) +
                     Number(
                       (await klerosLiquid.methods
@@ -184,7 +184,7 @@ module.exports.post = async (_event, _context, callback) => {
         email = item.Item.email.S
         setting = item.Item[settingKey].BOOL
       }
-      
+
       if (email && setting) {
         console.log("SENDING EMAIL TO " + email)
         await sendgrid.send({
