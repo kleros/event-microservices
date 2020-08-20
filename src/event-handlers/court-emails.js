@@ -143,6 +143,19 @@ const handlers = {
       }
     ]
   },
+  StakeChanged: async (_, klerosLiquid, event) => {
+    return [
+      {
+        account: event._address,
+        type: 'Stake',
+        templateId: 'd-231457425dfe444e99ff9f27db599f9c',
+        dynamic_template_data: {
+          stakesChanged: event._stakesChanged,
+        },
+        pushNotificationText: `Your court stakes have been updated`
+      }
+    ]
+  },
 }
 module.exports.post = async (_event, _context, callback) => {
   const event = JSON.parse(_event.body)
