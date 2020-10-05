@@ -1,0 +1,12 @@
+{
+  "post": {
+    "request": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "title": "Event",
+        "description": "A Web3 smart contract event log object."
+      }
+    }
+  }
+}
