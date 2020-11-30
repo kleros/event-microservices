@@ -71,9 +71,9 @@ const handlers = {
     )
     return accounts.map(account => ({
       account: account,
-      templateId: 'TEMPLATE_ID',
+      templateId: 'd-2cdd60c3ddc24c0f90e849d0185b83bc',
       dynamic_template_data: {
-        event: event.event
+        submissionid: event.returnValues._submissionID
       }
     }))
   },
@@ -84,9 +84,9 @@ const handlers = {
     )
     return accounts.map(account => ({
       account: account,
-      templateId: 'TEMPLATE_ID',
+      templateId: 'd-c881eb7d645f4178b40f7c622900fef3',
       dynamic_template_data: {
-        event: event.event
+        submissionid: event.returnValues._submissionID
       }
     }))
   },
@@ -97,9 +97,9 @@ const handlers = {
     )
     return accounts.map(account => ({
       account: account,
-      templateId: 'TEMPLATE_ID',
+      templateId: 'd-00a956cad92544e79b65385439dcaa88',
       dynamic_template_data: {
-        event: event.event
+        submissionid: event.returnValues._submissionID
       }
     }))
   },
@@ -110,9 +110,9 @@ const handlers = {
     )
     return accounts.map(account => ({
       account: account,
-      templateId: 'TEMPLATE_ID',
+      templateId: 'd-ab5bf7ddaad44f2c819bf01363a282cb',
       dynamic_template_data: {
-        event: event.event
+        submissionid: event.returnValues._submissionID
       }
     }))
   }
