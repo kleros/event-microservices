@@ -205,7 +205,7 @@ functions:
   postEventHandlersXDaiCourtEmails:
     handler: src/event-handlers/court-emails.postXDai
     events:
-      - { http: { path: event-handler-court-emails, method: post, cors: true } }
+      - { http: { path: event-handler-xdai-court-emails, method: post, cors: true } }
     environment:
       XDAI_RPC_URL: '${self:custom.kmsSecrets.secrets.${self:custom.environments.${self:provider.stage}}_XDAI_RPC_URL}'
       PRIVATE_KEY: '${self:custom.kmsSecrets.secrets.PRIVATE_KEY}'
