@@ -290,7 +290,7 @@ module.exports.post = createLambdaHandler(
 );
 
 module.exports.postXDai = createLambdaHandler(
-  _web3.sideChain,
+  _web3.xdaiChain,
   (web3) =>
     new web3.eth.Contract(
       _xKlerosLiquid.abi,

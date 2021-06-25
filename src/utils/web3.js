@@ -5,7 +5,7 @@ module.exports = async () => {
   return new Web3(new Web3.providers.HttpProvider(INFURA_URL))
 }
 
-module.exports.sideChain = async () => {
-  const RPC_URL = process.env.RPC_URL
+module.exports.xdaiChain = async () => {
+  const XDAI_RPC_URL = process.env.XDAI_RPC_URL
   return new Web3(new Web3.providers.HttpProvider(RPC_URL))
 }
