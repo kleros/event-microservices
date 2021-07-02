@@ -214,7 +214,7 @@ functions:
       X_KLEROS_LIQUID_ADDRESS_XDAI: '${self:custom.kmsSecrets.secrets.PRODUCTION_X_KLEROS_LIQUID_ADDRESS}'
       VAPID_KEY: '${self:custom.kmsSecrets.secrets.VAPID_KEY}'
       VAPID_PUB: '${self:custom.kmsSecrets.secrets.VAPID_PUB}'
-    iamRoleStatementsName: 'postEventHandlersCourtEmails-${self:provider.stage}-lambda-role'
+    iamRoleStatementsName: 'postEventHandlersXDaiCourtEmails-${self:provider.stage}-lambda-role'
     iamRoleStatements:
       - {
           Effect: Allow,
