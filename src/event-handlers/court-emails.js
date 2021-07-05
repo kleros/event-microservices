@@ -1,4 +1,4 @@
-const qs = require('quertystring');
+const qs = require('querystring');
 
 const TimeAgo = require('javascript-time-ago');
 TimeAgo.addLocale(require('javascript-time-ago/locale/en'));
