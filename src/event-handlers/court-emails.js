@@ -14,44 +14,39 @@ const webpush = require('web-push');
 const timeAgo = new TimeAgo('en-US');
 const createEventHandlers = (chainId) => ({
   Draw: async (_, klerosLiquid, event) => {
-    try {
-      console.log('Calling .disputes() with disputeID:', event._disputeID);
-      const dispute = await klerosLiquid.methods
-        .disputes(event._disputeID)
-        .call();
-      return [
-        {
-          account: event._address,
-          type: 'Draw',
-          disputeID: event._disputeID,
-          templateId: 'd-b4880ab92d004827929ad074a714a7cb',
-          dynamic_template_data: {
-            startDate:
+    const dispute = await klerosLiquid.methods
+      .disputes(event._disputeID)
+      .call()
+
+    return [
+      {
+        account: event._address,
+        type: 'Draw',
+        disputeID: event._disputeID,
+        templateId: 'd-b4880ab92d004827929ad074a714a7cb',
+        dynamic_template_data: {
+          startDate:
             event._appeal === '0'
-            ? `${timeAgo.format(
-              (Number(dispute.lastPeriodChange) +
-                Number(
-                  (
-                    await klerosLiquid.methods
-                    .getSubcourt(dispute.subcourtID)
-                    .call()
-                  ).timesPerPeriod[0]
-                )) *
-              1000
-            )}`
-                : 'as soon as all other jurors are drawn',
-                caseNumber: event._disputeID,
-                caseUrl: `https://court.kleros.io/cases/${
+              ? `${timeAgo.format(
+                  (Number(dispute.lastPeriodChange) +
+                    Number(
+                      (
+                        await klerosLiquid.methods
+                          .getSubcourt(dispute.subcourtID)
+                          .call()
+                      ).timesPerPeriod[0]
+                    )) *
+                    1000
+                )}`
+              : 'as soon as all other jurors are drawn',
+          caseNumber: event._disputeID,
+          caseUrl: `https://court.kleros.io/cases/${
             event._disputeID
           }?${qs.stringify({ requiredChainId: chainId })}`,
-          },
-            pushNotificationText: `You have been drawn in case #${event._disputeID}`,
-          },
-      ];
-    } catch (err) {
-      console.warn('Ooops, got an error:', err);
-      throw err;
-    }
+        },
+        pushNotificationText: `You have been drawn in case #${event._disputeID}`,
+      },
+    ];
   },
   Vote: async (_, klerosLiquid, event) => {
     const dispute = await klerosLiquid.methods
@@ -208,11 +203,26 @@ const createLambdaHandler = (createWeb3, createContract) => {
     );
 
     const handlers = createEventHandlers(chainId);
-    const notifications = await handlers[event.event](
-      web3,
-      createContract(web3),
-      event
-    );
+    let notifications = []
+    try {
+      notifications = await handlers[event.event](
+        web3,
+        createContract(web3),
+        event
+      );
+    } catch (err) {
+      const { event: eventName, ...payload } = event
+      console.info(`Error processing event ${event.event} with payload:`, payload)
+      console.warn(err)
+
+      return callback(null, {
+        statusCode: 500,
+        headers: { 'Access-Control-Allow-Origin': '*' },
+        body: JSON.stringify({
+          error: err.message,
+        }),
+      });
+    }
 
     for (const notification of notifications) {
       const signedUnsubscribeKey = lambdaAccount.sign(notification.account);
