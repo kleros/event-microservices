@@ -4,6 +4,9 @@ provider:
   runtime: nodejs12.x
   stage: '${opt:stage, self:custom.defaultStage}'
   region: us-east-2
+  logs:
+    restApi:
+      format: '{ "requestId": "$context.requestId", "requestTime": "$context.requestTime", "body": "$input.json(\"$\")" }'
 package:
   exclude:
     - .env

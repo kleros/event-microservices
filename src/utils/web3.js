@@ -6,6 +6,11 @@ module.exports = async () => {
 }
 
 module.exports.xdaiChain = async () => {
-  const XDAI_RPC_URL = process.env.XDAI_RPC_URL
-  return new Web3(new Web3.providers.HttpProvider(RPC_URL))
+  try {
+    const XDAI_RPC_URL = process.env.XDAI_RPC_URL
+    return new Web3(new Web3.providers.HttpProvider(XDAI_RPC_URL))
+  } catch (err) {
+    console.warn("Failed to create a web3 instance:", err)
+    throw err
+  }
 }
