@@ -1,4 +1,5 @@
 const qs = require('querystring');
+const { inspect } = require('util');
 
 const TimeAgo = require('javascript-time-ago');
 TimeAgo.addLocale(require('javascript-time-ago/locale/en'));
@@ -11,7 +12,10 @@ const dynamoDB = require('../utils/dynamo-db');
 const getEnvVars = require('../utils/get-env-vars');
 const webpush = require('web-push');
 
+inspect.defaultOptions.depth = 5;
+
 const timeAgo = new TimeAgo('en-US');
+
 const createEventHandlers = (chainId) => ({
   Draw: async (_, klerosLiquid, event) => {
     const dispute = await klerosLiquid.methods
@@ -44,7 +48,7 @@ const createEventHandlers = (chainId) => ({
             event._disputeID
           }?${qs.stringify({ requiredChainId: chainId })}`,
         },
-        pushNotificationText: `You have been drawn in case #${event._disputeID}`,
+        pushNotificationText: `You have been drawn on case #${event._disputeID}`,
       },
     ];
   },
@@ -75,7 +79,7 @@ const createEventHandlers = (chainId) => ({
             event._disputeID
           }?${qs.stringify({ requiredChainId: chainId })}`,
         },
-        pushNotificationText: `It is time to vote in case #${event._disputeID}`,
+        pushNotificationText: `It is time to vote on case #${event._disputeID}`,
       },
     ];
   },
@@ -106,7 +110,7 @@ const createEventHandlers = (chainId) => ({
             event._disputeID
           }?${qs.stringify({ requiredChainId: chainId })}`,
         },
-        pushNotificationText: `You have 24 hours left to vote in case #${event._disputeID}`,
+        pushNotificationText: `You have 24 hours left to vote on case #${event._disputeID}`,
       },
     ];
   },
@@ -212,8 +216,7 @@ const createLambdaHandler = (createWeb3, createContract) => {
       );
     } catch (err) {
       const { event: eventName, ...payload } = event
-      console.info(`Error processing event ${event.event} with payload:`, payload)
-      console.warn(err)
+      console.warn({ event: eventName, payload, err }, 'Error processing event')
 
       return callback(null, {
         statusCode: 500,
@@ -225,6 +228,7 @@ const createLambdaHandler = (createWeb3, createContract) => {
     }
 
     for (const notification of notifications) {
+      console.info({ notification }, 'Processing notification');
       const signedUnsubscribeKey = lambdaAccount.sign(notification.account);
 
       try {
@@ -248,7 +252,8 @@ const createLambdaHandler = (createWeb3, createContract) => {
         }
 
         if (email && setting) {
-          console.log('SENDING EMAIL TO ' + email);
+          console.info({ email, data: notification.dynamic_template_data }, 'Sending email');
+
           await sendgrid.send({
             to: email,
             from: {
@@ -263,13 +268,26 @@ const createLambdaHandler = (createWeb3, createContract) => {
           });
         }
 
-        const pushNotifications =
-          item.Item['pushNotifications'] && item.Item['pushNotifications'].BOOL;
-        const pushNotificationsData = item.Item['pushNotificationsData']
-          ? JSON.parse(item.Item['pushNotificationsData'].S)
-          : false;
+        const pushNotifications = item
+          && item.Item
+          && item.Item['pushNotifications']
+          && item.Item['pushNotifications'].BOOL;
 
-        if (pushNotifications) {
+        let pushNotificationsData;
+        try {
+          pushNotificationsData = (
+            item
+              && item.Item
+              && item.Item['pushNotificationsData']
+          )
+            ? JSON.parse(item.Item['pushNotificationsData'].S)
+            : null;
+        } catch (err) {
+          console.warn({ err }, 'Failed to parse push notifications data')
+          pushNotificationsData = null
+        }
+
+        if (pushNotifications && pushNotificationsData) {
           const { VAPID_KEY } = await getEnvVars(['VAPID_KEY']);
           const options = {
             vapidDetails: {
@@ -286,7 +304,9 @@ const createLambdaHandler = (createWeb3, createContract) => {
             options
           );
         }
-      } catch (_) {}
+      } catch (err) {
+        console.error({ notification, err }, 'Failed to process notification')
+      }
     }
 
     callback(null, {
