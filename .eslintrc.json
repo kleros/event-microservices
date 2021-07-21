@@ -1,0 +1,17 @@
+{
+  "extends": [
+    "prettier-standard/prettier-file",
+    "plugin:import/recommended"
+  ],
+  "plugins": [
+    "import"
+  ],
+  "rules": {
+    "import/no-unresolved": [
+      "error",
+      {
+        "commonjs": true
+      }
+    ]
+  }
+}

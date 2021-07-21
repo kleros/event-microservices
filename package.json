@@ -8,16 +8,13 @@
   "private": true,
   "scripts": {
     "prettify": "kleros-scripts prettify",
-    "lint": "kleros-scripts lint:js",
-    "precommit": "kleros-scripts precommit",
-    "commitmsg": "kleros-scripts commitmsg",
-    "cz": "kleros-scripts cz",
     "invoke": "env-cmd ./.env serverless invoke -l -f",
     "build": "docker run --rm -v $PWD:/data -w /data node:12 npm rebuild scrypt",
     "deploy:function": "env-cmd ./.env serverless deploy function -f",
     "deploy:prod": "env-cmd ./.env serverless -s production deploy function -f",
     "deploy:staging": "env-cmd ./.env serverless deploy",
-    "deploy": "env-cmd ./.env serverless deploy -s production"
+    "deploy": "env-cmd ./.env serverless deploy -s production",
+    "prepare": "husky install"
   },
   "commitlint": {
     "extends": [
@@ -25,8 +22,21 @@
     ]
   },
   "devDependencies": {
+    "@commitlint/cli": "^12.1.4",
+    "@commitlint/config-conventional": "^12.1.4",
     "env-cmd": "^8.0.2",
-    "kleros-scripts": "^0.6.0",
+    "eslint": "^7.28.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-config-prettier-standard": "^4.0.1",
+    "eslint-config-standard": "^16.0.3",
+    "eslint-plugin-import": "^2.23.4",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^3.4.0",
+    "eslint-plugin-promise": "^5.1.0",
+    "husky": ">=6",
+    "lint-staged": ">=10",
+    "prettier": "^2.3.1",
+    "prettier-config-standard": "^4.0.0",
     "serverless": "^1.33.2",
     "serverless-aws-documentation": "^1.1.0",
     "serverless-iam-roles-per-function": "^1.0.1",
@@ -47,5 +57,8 @@
   },
   "volta": {
     "node": "12.22.3"
+  },
+  "lint-staged": {
+    "*.js": "eslint --cache --fix"
   }
 }
