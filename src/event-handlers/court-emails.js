@@ -27,12 +27,21 @@ const chainIdToCurrencySymbols = {
   },
 };
 
+const chainIdToChainTag = {
+  100: "[xDAI Chain]",
+};
+
 const getSymbols = (chainId) => {
   return chainIdToCurrencySymbols[chainId] || chainIdToCurrencySymbols[1];
 };
 
 const createEventHandlers = (chainId) => {
   const symbols = getSymbols(chainId);
+  const dataMixin = chainIdToChainTag[chainId]
+    ? {
+        chainTag: chainIdToChainTag[chainId],
+      }
+    : {};
 
   return {
     Draw: async (_, klerosLiquid, event) => {
@@ -55,6 +64,7 @@ const createEventHandlers = (chainId) => {
                 : "as soon as all other jurors are drawn",
             caseNumber: event._disputeID,
             caseUrl: `https://court.kleros.io/cases/${event._disputeID}?${qs.stringify({ requiredChainId: chainId })}`,
+            ...dataMixin,
           },
           pushNotificationText: `You have been drawn on case #${event._disputeID}`,
         },
@@ -76,6 +86,7 @@ const createEventHandlers = (chainId) => {
             )}`,
             caseNumber: event._disputeID,
             caseUrl: `https://court.kleros.io/cases/${event._disputeID}?${qs.stringify({ requiredChainId: chainId })}`,
+            ...dataMixin,
           },
           pushNotificationText: `It is time to vote on case #${event._disputeID}`,
         },
@@ -97,6 +108,7 @@ const createEventHandlers = (chainId) => {
             )}`,
             caseNumber: event._disputeID,
             caseUrl: `https://court.kleros.io/cases/${event._disputeID}?${qs.stringify({ requiredChainId: chainId })}`,
+            ...dataMixin,
           },
           pushNotificationText: `You have 24 hours left to vote on case #${event._disputeID}`,
         },
@@ -112,6 +124,7 @@ const createEventHandlers = (chainId) => {
           dynamic_template_data: {
             caseNumber: event._disputeID,
             caseUrl: `https://court.kleros.io/cases/${event._disputeID}?${qs.stringify({ requiredChainId: chainId })}`,
+            ...dataMixin,
           },
           pushNotificationText: `Case #${event._disputeID} has been appealed`,
         },
@@ -130,6 +143,7 @@ const createEventHandlers = (chainId) => {
             caseTitle: event._caseTitle,
             caseNumber: event._disputeID,
             caseUrl: `https://court.kleros.io/cases/${event._disputeID}?${qs.stringify({ requiredChainId: chainId })}`,
+            ...dataMixin,
           },
           pushNotificationText: `Horray! You won ${event._ethWon} ${symbols.native} from case #${event._disputeID}`,
         },
@@ -147,6 +161,7 @@ const createEventHandlers = (chainId) => {
             caseTitle: event._caseTitle,
             caseNumber: event._disputeID,
             caseUrl: `https://court.kleros.io/cases/${event._disputeID}?${qs.stringify({ requiredChainId: chainId })}`,
+            ...dataMixin,
           },
           pushNotificationText: `You lost ${event._pnkLost} ${symbols.PNK} from case #${event._disputeID}`,
         },
@@ -160,6 +175,7 @@ const createEventHandlers = (chainId) => {
           templateId: "d-231457425dfe444e99ff9f27db599f9c",
           dynamic_template_data: {
             stakesChanged: event._stakesChanged,
+            ...dataMixin,
           },
           pushNotificationText: `Your court stakes have been updated`,
         },
@@ -235,7 +251,7 @@ const createLambdaHandler = (createWeb3, createContract) => {
             templateId: notification.templateId,
             dynamic_template_data: {
               ...notification.dynamic_template_data,
-              unsubscribe: ` https://hgyxlve79a.execute-api.us-east-2.amazonaws.com/production/unsubscribe?signature=${signedUnsubscribeKey.signature}&account=${notification.account}&dapp=court`,
+              unsubscribe: `https://hgyxlve79a.execute-api.us-east-2.amazonaws.com/production/unsubscribe?signature=${signedUnsubscribeKey.signature}&account=${notification.account}&dapp=court`,
             },
           });
         }
